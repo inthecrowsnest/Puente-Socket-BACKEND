@@ -9,7 +9,7 @@ import * as game from './controllers/gameRoomController.js'
 
 // init app and port
 const app = express();
-// const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 3001);
 const server = createServer(app);
 
 // need to use cors to allow a specific url to connect
@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
 // the docs LIE TO YOU 
 // YOU DO NOT NEED THIS
 // only put server to listen
-// // io.listen(PORT)
+io.listen(PORT)
 
 // set server to listen on port
 // server.listen(PORT, () => {
