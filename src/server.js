@@ -1,11 +1,10 @@
 import 'dotenv/config'
 import express from 'express'
-import cors from 'cors'
-import morgan from 'morgan'
 import { Server } from 'socket.io'
 import { createServer } from 'node:http'
 
 import * as game from './controllers/gameRoomController.js'
+import * as cl from './controllers/coLearningController.js'
 
 // init app and port
 const app = express();
@@ -18,20 +17,6 @@ const io = new Server(server, {
     origin: 'http://localhost:5173'
   }
 })
-
-// set up cors, morgan, json middleware
-// app.use(cors())
-// app.use(morgan('dev'))
-// app.use(express.json())
-
-// link router to base url
-// app.use('/', router)
-
-// basic fallback error handler
-// app.use((err, _req, res, _next) => {
-//   console.error(err);
-//   res.status( err.status || 500).json({ error: (err.message || 'Unexpected server error') });
-// });
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
@@ -78,14 +63,30 @@ io.on('connection', (socket) => {
     // update room with status
     io.to(data).emit('roomUpdate', roomData)
   })
+
+  socket.on('setLesson', (data) => {
+    let sessionData = cl.setLesson(data)
+    io.to(parseInt(data[0])).emit('sessionUpdate', sessionData)
+  })
+
+  socket.on('nextLine', (data) => {
+    let sessionData = cl.nextLine(data)
+    // console.log('session data: ' + sessionData + " code: " + data)
+    io.to(parseInt(data)).emit('sessionUpdate', sessionData)
+  })
+
+  socket.on('finishLesson', (data) => {
+    let sessionData = cl.finishScript(data)
+
+    io.to(parseInt(data)).emit('sessionUpdate', sessionData)
+  })
+
+  // sets lesson to null so can choose another
+  socket.on('endLesson', (data) => {
+    cl.endLesson(data)
+    console.log("end session: " + data)
+    io.to(parseInt(data)).emit('sessionUpdate', null)
+  })
 });
 
-// the docs LIE TO YOU 
-// YOU DO NOT NEED THIS
-// only put server to listen
 io.listen(PORT)
-
-// set server to listen on port
-// server.listen(PORT, () => {
-//   console.log(`Puente API listening on port ${PORT}`);
-// });
