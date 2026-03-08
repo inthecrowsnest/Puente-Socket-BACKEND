@@ -19,7 +19,7 @@ export function createRoom(socket, data) {
     // create room ID/code
     let code = Math.floor(DIGITS + Math.random()*DIGITS)
     console.log(`Code generated: ${code}`)
-    rooms[code] = {users: [socket.id],
+    rooms[code] = {users: [{id: socket.id, name: 'Host'}],
                     "code": code,
                     type: data,
                     roomID: data+"_"+code,
@@ -41,7 +41,18 @@ export function leaveRoom(socket, data) {
         
         // remove user from users list
         let userList = rooms[data].users
-        let idx = userList.indexOf(socket.id)
+        let userIdx = 0;
+
+        for (const userObj of userList) {
+            console.log("iterating: " + userList + " userObj: " + userObj.id)
+            // init incase found, no ints in userList
+            // if object has id field with matching key, save
+            if (userObj.id === socket.id) {
+                userIdx = userObj
+            }
+        }
+
+        let idx = userList.indexOf(userIdx)
         if (idx > -1) {
             userList.splice(idx, 1) // del only the user id
         }
@@ -76,9 +87,7 @@ export function joinRoom(socket, data) {
         // if valid, join room
         console.log("Joining: " + roomCode)
         socket.join(roomCode)
-        if (!room.users.includes(socket.id)) {
-            room.users.push(socket.id)
-        }
+        room.users.push({id: socket.id, name: data[1]})
         console.log(rooms)
         // return success + room info
         // emit to all users in the room so they get updated user list etc
